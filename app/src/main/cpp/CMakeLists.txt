@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.10.2)
 
 
-project("myapplication")
+project("opensslDemo")
 
 include_directories(
         include
