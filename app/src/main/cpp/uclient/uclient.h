@@ -97,7 +97,7 @@ extern oauth_key okey_array[3];
 
 void start_mclient(const char *remote_address, int port,
 		   const unsigned char* ifname, const char *local_address,
-		   int messagenumber, int mclient,local_address_cb cb);
+		   int messagenumber, int mclient);
 
 int send_buffer(app_ur_conn_info *clnet_info, stun_buffer* message, int data_connection, app_tcp_conn_info *atc);
 int recv_buffer(app_ur_conn_info *clnet_info, stun_buffer* message, int sync, int data_connection, app_tcp_conn_info *atc, stun_buffer* request_message);
@@ -111,6 +111,7 @@ int check_integrity(app_ur_conn_info *clnet_info, stun_buffer *message);
 
 SOCKET_TYPE get_socket_type(void);
 
+void set_notify_address_cb(local_address_cb cb);
 ////////////////////////////////////////////
 
 #ifdef __cplusplus

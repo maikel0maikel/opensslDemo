@@ -75,7 +75,7 @@ void set_peer_address(const char*peer_addr){
 }
 
 void start_uclient_default(const char* remote_address,int remote_port){
-    start_uclient(remote_address,remote_port,0,0,NULL);
+    start_uclient(remote_address,remote_port,0,0);
 }
 
 void set_peer_port(int port){
@@ -94,8 +94,10 @@ void set_cipher_suite(const char *suite){
 void set_local_addr(const char*local_address){
     //strcpy(local_addr,local_address);
 }
-
-void start_uclient(const char* remote_address,int remote_port,const char* uname,const char * upwd,local_address_cb cb){
+void set_addr_cb(local_address_cb cb){
+    set_notify_address_cb(cb);
+}
+void start_uclient(const char* remote_address,int remote_port,const char* uname,const char * upwd){
     int  port = remote_port;
     strcpy(g_uname,uname);
     strcpy(g_upwd, upwd);
@@ -285,6 +287,6 @@ void start_uclient(const char* remote_address,int remote_port,const char* uname,
                 SSL_CTX_set_read_ahead(root_tls_ctx[sslind], 1);
         }
     }
-    start_mclient(remote_address, port, client_ifname, m_local_addr, messagenumber, mclient,cb);
+    start_mclient(remote_address, port, client_ifname, m_local_addr, messagenumber, mclient);
 
 }

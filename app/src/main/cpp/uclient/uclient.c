@@ -1370,11 +1370,13 @@ static void timer_handler(evutil_socket_t fd, short event, void *arg)
 		}
 	}
 }
-
+void set_notify_address_cb(local_address_cb cb){
+	set_local_addr_cb(cb);
+}
 void start_mclient(const char *remote_address, int port,
 		const unsigned char* ifname, const char *local_address,
-		int messagenumber, int mclient,local_address_cb cb) {
-	set_local_addr_cb(cb);
+		int messagenumber, int mclient) {
+
 	if (mclient < 1)
 		mclient = 1;
 

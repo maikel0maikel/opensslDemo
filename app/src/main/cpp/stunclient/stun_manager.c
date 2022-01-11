@@ -358,6 +358,7 @@ int run_stunclient(const char* rip, int rport, int *port, int *rfc5780, int resp
                                 notify_address(OTHER_IP,&other_addr,other_cb);
                             }
                             notify_address(REFLEXIVE_IP,&reflexive_addr,reflexive_cb);
+                            notify_address(REFLEXIVE_IP,&real_local_addr,reflexive_cb);
                         } else {
                             printf("Cannot read the response\n");
                         }
@@ -389,6 +390,14 @@ int run_stunclient(const char* rip, int rport, int *port, int *rfc5780, int resp
 int run_stun(const char* rip, int rport){
     int local_port = -1;
     int rfc5780 = 0;
+
+    addr_set_any(&real_local_addr);
+
+    if(local_addr[0]) {
+        if(make_ioa_addr((const uint8_t*)local_addr, 0, &real_local_addr)<0) {
+            err(-1,NULL);
+        }
+    }
 
     run_stunclient(rip, rport, &local_port, &rfc5780,-1,0,0,0);
 

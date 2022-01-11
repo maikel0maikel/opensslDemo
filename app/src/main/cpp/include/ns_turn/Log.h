@@ -13,5 +13,5 @@
 #define REMOTE_IP 4
 #define OTHER_IP 5
 
-typedef void (*local_address_cb)(const char *remot,const char *address,int port);
+typedef void (*local_address_cb)(int type,const char *address,int port);
 #endif //MY_APPLICATION_LOG_H

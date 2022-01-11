@@ -14,6 +14,7 @@ public:
     coturn_manager(JavaVM *vm);
     void startStun(const char *address,int port,jobject callback);
     void startUClient(const char *remote_addr,int port,const char *u_name,const char *u_pwd,jobject callback);
+    void init();
     ~coturn_manager();
 private:
     static JavaVM * mVm ;

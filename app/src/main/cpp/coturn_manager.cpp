@@ -20,21 +20,61 @@ coturn_manager::coturn_manager(JavaVM *vm) {
 void coturn_manager::startStun(const char *address, int port, jobject callback) {
     objectsMap.erase(REFLEXIVE_IP);
     objectsMap.insert(std::map<int, jobject>::value_type(REFLEXIVE_IP, callback));
+    run_stun(address, port);
+}
+
+void coturn_manager::init() {
+    set_addr_cb([](int type, const char *local_ip, int port) -> void {
+        LOGE("on local_ip %d %s,%d,%d\n", type, local_ip, port, objectsMap.size());
+
+        std::map<int, jobject>::iterator it = objectsMap.find(LOCAL_IP);
+        if (it != objectsMap.end()) {
+            JNIEnv *env;
+            jint ret = mVm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
+            bool isAttach = false;
+            if (ret == JNI_EDETACHED) {
+                ret = mVm->AttachCurrentThread(&env, nullptr);
+                isAttach = true;
+            }
+            if (ret != JNI_OK) {
+                LOGE("zbq jni error startUClient \n");
+                return;
+            }
+            jclass clz = env->GetObjectClass(it->second);
+            if (!clz) {
+                return;
+            }
+            jmethodID m = env->GetMethodID(clz, "onIP", "(ILjava/lang/String;I)V");
+            if (!m) {
+                return;
+            }
+            env->CallVoidMethod(it->second, m, type, env->NewStringUTF(local_ip),
+                                port);
+            if (isAttach) {
+                mVm->DetachCurrentThread();
+            }
+        } else {
+            LOGE("not set call back");
+        }
+
+    });
+
     set_reflexive_cb([](int type, const char *address, int port) -> void {
         LOGE("zbq  %d,%s,%d", type, address, port);
-        JNIEnv *env;
-        jint ret = mVm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
-        bool isAttach = false;
-        if (ret == JNI_EDETACHED) {
-            ret = mVm->AttachCurrentThread(&env, nullptr);
-            isAttach = true;
-        }
-        if (ret != JNI_OK) {
-            LOGE("zbq jni error startUClient \n");
-            return;
-        }
+
         std::map<int, jobject>::iterator it = objectsMap.find(REFLEXIVE_IP);
         if (it != objectsMap.end()) {
+            JNIEnv *env;
+            jint ret = mVm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
+            bool isAttach = false;
+            if (ret == JNI_EDETACHED) {
+                ret = mVm->AttachCurrentThread(&env, nullptr);
+                isAttach = true;
+            }
+            if (ret != JNI_OK) {
+                LOGE("zbq jni error startUClient \n");
+                return;
+            }
             jclass clz = env->GetObjectClass(it->second);
             if (!clz) {
                 return;
@@ -44,55 +84,20 @@ void coturn_manager::startStun(const char *address, int port, jobject callback) 
                 return;
             }
             env->CallVoidMethod(it->second, m, type, env->NewStringUTF(address), port);
+            if (isAttach) {
+                mVm->DetachCurrentThread();
+            }
         } else {
             LOGE("not set call back");
         }
-        if (isAttach) {
-            mVm->DetachCurrentThread();
-        }
-
     });
-    run_stun(address, port);
 }
 
 void coturn_manager::startUClient(const char *remote_addr, int port, const char *u_name,
                                   const char *u_pwd, jobject callback) {
     objectsMap.erase(LOCAL_IP);
     objectsMap.insert(std::map<int, jobject>::value_type(LOCAL_IP, callback));
-    start_uclient(remote_addr, port, u_name, u_pwd,
-                  [](const char *remote, const char *local_ip, int port) -> void {
-                      LOGE("on local_ip %s %s,%d,%d\n", remote, local_ip, port, objectsMap.size());
-                      JNIEnv *env;
-                      jint ret = mVm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
-                      bool isAttach = false;
-                      if (ret == JNI_EDETACHED) {
-                          ret = mVm->AttachCurrentThread(&env, nullptr);
-                          isAttach = true;
-                      }
-                      if (ret != JNI_OK) {
-                          LOGE("zbq jni error startUClient \n");
-                          return;
-                      }
-                      std::map<int, jobject>::iterator it = objectsMap.find(LOCAL_IP);
-                      if (it != objectsMap.end()) {
-                          jclass clz = env->GetObjectClass(it->second);
-                          if (!clz) {
-                              return;
-                          }
-                          jmethodID m = env->GetMethodID(clz, "onIP", "(ILjava/lang/String;I)V");
-                          if (!m) {
-                              return;
-                          }
-                          env->CallVoidMethod(it->second, m, LOCAL_IP, env->NewStringUTF(local_ip),
-                                              port);
-                      } else {
-                          LOGE("not set call back");
-                      }
-                      if (isAttach) {
-                          mVm->DetachCurrentThread();
-                      }
-                      objectsMap.erase(LOCAL_IP);
-                  });
+    start_uclient(remote_addr, port, u_name, u_pwd);
 
 }
 

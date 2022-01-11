@@ -5,6 +5,7 @@
 JavaVM * _vm;
 jlong init_native(JNIEnv*env,jobject obj){
     auto * coturnManager = new coturn_manager(_vm);
+    coturnManager->init();
     return reinterpret_cast<jlong>(coturnManager);
 }
 

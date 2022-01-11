@@ -55,6 +55,18 @@ static const unsigned char kALPNProtos[] = "\x08http/1.1\x09stun.turn\x12stun.na
 static const size_t kALPNProtosLen = sizeof(kALPNProtos) - 1;
 #endif
 local_address_cb mCB;
+
+void notify_ip(int type ,const ioa_addr *addr,local_address_cb cb){
+	char addrbuf[INET6_ADDRSTRLEN];
+	memset(addrbuf, 0, INET6_ADDRSTRLEN);
+	inet_ntop(AF_INET,
+			  &addr->s4.sin_addr, addrbuf, INET6_ADDRSTRLEN);
+	int port = nswap16(addr->s4.sin_port);
+	if (cb){
+		cb(type,addrbuf,port);
+	}
+}
+
 /////////////////////////////////////////
 void set_local_addr_cb(local_address_cb cb){
     mCB = cb;
@@ -302,13 +314,14 @@ static int clnet_connect(uint16_t clnet_remote_port, const char *remote_address,
 	if(clnet_info) {
 //		addr_debug_print(verbose, &(clnet_info->local_addr), "Connected from");
 //		addr_debug_print(verbose, &remote_addr, "Connected to");
-		char addrbuf[INET6_ADDRSTRLEN];
-		const char * ad = inet_ntop(AF_INET,
-									&clnet_info->local_addr.s4.sin_addr, addrbuf, INET6_ADDRSTRLEN);
-		int port = nswap16(clnet_info->local_addr.s4.sin_port);
-		if (mCB){
-			mCB(remote_address,addrbuf,port);
-		}
+//		char addrbuf[INET6_ADDRSTRLEN];
+//		const char * ad = inet_ntop(AF_INET,
+//									&clnet_info->local_addr.s4.sin_addr, addrbuf, INET6_ADDRSTRLEN);
+//		int port = nswap16(clnet_info->local_addr.s4.sin_port);
+//		if (mCB){
+//			mCB(remote_address,addrbuf,port);
+//		}
+		notify_ip(LOCAL_IP,&clnet_info->local_addr,mCB);
 	}
 
 	if(!dos) usleep(500);
@@ -485,12 +498,12 @@ static int clnet_allocate(int verbose,
 											__FUNCTION__);
 										return -1;
 									} else {
+										ioa_addr raddr;
+										memcpy(&raddr, relay_addr,sizeof(ioa_addr));
+										notify_ip(RELAY_IP,&raddr,mCB);
 										if (verbose) {
-											ioa_addr raddr;
-											memcpy(&raddr, relay_addr,sizeof(ioa_addr));
 											addr_debug_print(verbose, &raddr,"Received relay addr");
 										}
-
 										if(!addr_any(relay_addr)) {
 											if(relay_addr->ss.sa_family == AF_INET) {
 												if(default_address_family != STUN_ATTRIBUTE_REQUESTED_ADDRESS_FAMILY_VALUE_IPV6) {
