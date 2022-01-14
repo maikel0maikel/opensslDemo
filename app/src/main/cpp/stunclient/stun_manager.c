@@ -358,7 +358,7 @@ int run_stunclient(const char* rip, int rport, int *port, int *rfc5780, int resp
                                 notify_address(OTHER_IP,&other_addr,other_cb);
                             }
                             notify_address(REFLEXIVE_IP,&reflexive_addr,reflexive_cb);
-                            notify_address(REFLEXIVE_IP,&real_local_addr,reflexive_cb);
+                            notify_address(4,&real_local_addr,reflexive_cb);
                         } else {
                             printf("Cannot read the response\n");
                         }
@@ -382,7 +382,10 @@ int run_stunclient(const char* rip, int rport, int *port, int *rfc5780, int resp
             printf("The response is not a STUN message\n");
         }
     }
-
+    //close(new_udp_fd);
+    close(udp_fd);
+    //new_udp_fd = -1;
+    udp_fd = -1;
     return 0;
 }
 #endif

@@ -1,38 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:orientation="vertical">
+    android:fillViewport="true">
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".MainActivity"
+            android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/device_tv"
-        android:text="hello world"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/device_tv"
+                android:text="hello world"/>
 
-   <Button android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:id="@+id/start_uclient"
-       android:text="开启coturn获取本机地址"/>
+           <Button android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:id="@+id/start_uclient"
+               android:text="开启coturn获取本机地址"/>
 
-    <Button android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/start_stunclient"
-        android:text="开启coturn获取外网地址"/>
+            <Button android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/start_stunclient"
+                android:text="开启coturn获取外网地址"/>
 
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="本地ip将在这里显示"
-        android:id="@+id/local_ip_et"/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="本地ip将在这里显示"
+                android:id="@+id/local_ip_et"/>
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="外网ip将在这里显示"
-        android:id="@+id/reflexive_ip_et"/>
-</LinearLayout>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="外网ip将在这里显示"
+                android:id="@+id/reflexive_ip_et"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <Button
+                    android:id="@+id/start_lan_udp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="尝试局域网收发"/>
+                <EditText
+                    android:id="@+id/lan_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="收到的消息将展示在这里"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <Button
+                    android:id="@+id/start_reflexive_udp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="尝试外网收发"
+                    />
+                <EditText
+                    android:id="@+id/reflexive_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="收到的消息将展示在这里"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <Button
+                    android:id="@+id/start_relay_udp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="尝试中继收发"/>
+                <EditText
+                    android:id="@+id/relay_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="收到的消息将展示在这里"/>
+            </LinearLayout>
+
+        </LinearLayout>
+</ScrollView>

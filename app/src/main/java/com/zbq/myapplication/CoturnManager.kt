@@ -24,10 +24,23 @@ object CoturnManager {
         startUClient(nativePtr, remoteAddress, port, uName, uPwd, observer)
     }
 
-    fun startStun(remoteAddress: String,
-                  port: Int,
-                  observer: OnIPAddressObserver){
-        startStun(nativePtr,remoteAddress,port,observer)
+    fun startStun(
+        remoteAddress: String,
+        port: Int,
+        observer: OnIPAddressObserver
+    ) {
+        startStun(nativePtr, remoteAddress, port, observer)
+    }
+    fun startPeerClient(
+        peerAddr: String,
+        peerPort: Int,
+        remoteAddress: String,
+        port: Int,
+        uName: String,
+        uPwd: String,
+        observer: OnIPAddressObserver
+    ){
+        startPeerClient(nativePtr,peerAddr,peerPort,remoteAddress,port,uName,uPwd,observer)
     }
 
     private external fun initNative(): Long
@@ -41,6 +54,17 @@ object CoturnManager {
 
     private external fun startUClient(
         nativePtr: Long,
+        remoteAddress: String,
+        port: Int,
+        uName: String,
+        uPwd: String,
+        observer: OnIPAddressObserver
+    )
+
+    private external fun startPeerClient(
+        nativePtr: Long,
+        peerAddr: String,
+        peerPort: Int,
         remoteAddress: String,
         port: Int,
         uName: String,

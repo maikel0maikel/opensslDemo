@@ -15,6 +15,7 @@ public:
     void startStun(const char *address,int port,jobject callback);
     void startUClient(const char *remote_addr,int port,const char *u_name,const char *u_pwd,jobject callback);
     void init();
+    void set_peer(const char *peer_addr,int peer_port);
     ~coturn_manager();
 private:
     static JavaVM * mVm ;

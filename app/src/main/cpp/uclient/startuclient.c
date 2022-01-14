@@ -213,8 +213,8 @@ int socket_connect(evutil_socket_t clnet_fd, ioa_addr *remote_addr, int *connect
 		if (*connect_err == EADDRINUSE)
 			return +1;
 		perror("connect");
-		TURN_LOG_FUNC(TURN_LOG_LEVEL_INFO, "%s: cannot connect to remote addr: %d\n", __FUNCTION__,*connect_err);
-		exit(-1);
+		LOGE( "%s: cannot connect to remote addr: %d\n", __FUNCTION__,*connect_err);
+		return -1;
 	}
 
 	return 0;
@@ -589,7 +589,7 @@ static int clnet_allocate(int verbose,
 					}
 				} else {
 					perror("recv");
-					exit(-1);
+					LOGE("error -------------------->recv");
 					break;
 				}
 			}
@@ -600,7 +600,7 @@ static int clnet_allocate(int verbose,
 	if(rare_event()) return 0;
 
 	if(!allocate_finished) {
-	  TURN_LOG_FUNC(TURN_LOG_LEVEL_ERROR,
+	  LOGE(
 			"Cannot complete Allocation\n");
 	  exit(-1);
 	}
@@ -839,11 +839,11 @@ static int turn_channel_bind(int verbose, uint16_t *chn,
 					goto beg_bind;
 				} else if (stun_is_error_response(&response_message, &err_code,err_msg,sizeof(err_msg))) {
 					cb_received = 1;
-					TURN_LOG_FUNC(TURN_LOG_LEVEL_INFO, "channel bind: error %d (%s)\n",
+					LOGE("channel bind: error %d (%s)\n",
 							      err_code,(char*)err_msg);
 					return -1;
 				} else {
-					TURN_LOG_FUNC(TURN_LOG_LEVEL_INFO, "unknown channel bind response\n");
+					LOGE("unknown channel bind response\n");
 					/* Try again ? */
 				}
 			} else {
@@ -978,10 +978,10 @@ int start_connection(uint16_t clnet_remote_port0,
 	addr_set_port(&peer_addr_rtcp,addr_get_port(&peer_addr_rtcp)+1);
 
 	/* Probe: */
-
+	LOGE("zbq ---- start_connection");
 	if (clnet_connect(clnet_remote_port0, remote_address0, ifname, local_address,
 			verbose, clnet_info_probe) < 0) {
-		exit(-1);
+		return -1;
 	}
 
 	uint16_t clnet_remote_port = clnet_remote_port0;
@@ -997,19 +997,23 @@ int start_connection(uint16_t clnet_remote_port0,
 
 	if (clnet_connect(clnet_remote_port, remote_address, ifname, local_address,
 			verbose, clnet_info) < 0) {
-	  exit(-1);
+
+		LOGE("zbq ---- clnet_connect error");
+		return -1;
 	}
 
 	if(!no_rtcp) {
 	  if (clnet_connect(clnet_remote_port, remote_address, ifname, local_address,
 			  verbose, clnet_info_rtcp) < 0) {
-	    exit(-1);
+		  LOGE("zbq ---- clnet_connect 2 error");
+		  return -1;
 	  }
 	}
 
 	int af = default_address_family ? default_address_family : get_allocate_address_family(&peer_addr);
 	if (clnet_allocate(verbose, clnet_info, &relay_addr, af, NULL,NULL) < 0) {
-	  exit(-1);
+		LOGE("zbq ---- clnet_allocate error");
+		return -1;
 	}
 
 	if(rare_event()) return 0;
@@ -1017,7 +1021,8 @@ int start_connection(uint16_t clnet_remote_port0,
 	if(!no_rtcp) {
 		af = default_address_family ? default_address_family : get_allocate_address_family(&peer_addr_rtcp);
 	  if (clnet_allocate(verbose, clnet_info_rtcp, &relay_addr_rtcp, af,NULL,NULL) < 0) {
-	    exit(-1);
+		  LOGE("zbq ---- clnet_allocate error 2");
+		  return -1;
 	  }
 	  if(rare_event()) return 0;
 	}
@@ -1028,23 +1033,27 @@ int start_connection(uint16_t clnet_remote_port0,
 			 * we are playing with the TURN server trying to screw it */
 			if (turn_channel_bind(verbose, chn, clnet_info, &peer_addr_rtcp)
 					< 0) {
-				exit(-1);
+				LOGE("zbq ---- turn_channel_bind error");
+				return -1;
 			}
 			if(rare_event()) return 0;
 
 			if (turn_channel_bind(verbose, chn, clnet_info, &peer_addr_rtcp)
 					< 0) {
-				exit(-1);
+				LOGE("zbq ---- turn_channel_bind error 2");
+				return -1;
 			}
 			if(rare_event()) return 0;
 			*chn = 0;
 			if (turn_channel_bind(verbose, chn, clnet_info, &peer_addr) < 0) {
-				exit(-1);
+				LOGE("zbq ---- turn_channel_bind error 3");
+				return -1;
 			}
 
 			if(rare_event()) return 0;
 			if (turn_channel_bind(verbose, chn, clnet_info, &peer_addr) < 0) {
-				exit(-1);
+				LOGE("zbq ---- turn_channel_bind error 4");
+				return -1;
 			}
 			if(rare_event()) return 0;
 
@@ -1073,7 +1082,8 @@ int start_connection(uint16_t clnet_remote_port0,
 			if (!no_rtcp) {
 				if (turn_channel_bind(verbose, chn_rtcp, clnet_info_rtcp,
 						&peer_addr_rtcp) < 0) {
-					exit(-1);
+					LOGE("zbq ---- turn_channel_bind error 5");
+					return -1;
 				}
 			}
 			if(rare_event()) return 0;
@@ -1104,12 +1114,14 @@ int start_connection(uint16_t clnet_remote_port0,
 
 			if(before) {
 				if (turn_create_permission(verbose, clnet_info, &peer_addr, 1) < 0) {
-					exit(-1);
+					LOGE("zbq ---- turn_create_permission error ");
+					return -1;
 				}
 				if(rare_event()) return 0;
 				if (turn_create_permission(verbose, clnet_info, &peer_addr_rtcp, 1)
 						< 0) {
-					exit(-1);
+					LOGE("zbq ---- turn_create_permission error 2");
+					return -1;
 				}
 				if(rare_event()) return 0;
 			}
@@ -1137,12 +1149,14 @@ int start_connection(uint16_t clnet_remote_port0,
 
 			if(!before) {
 				if (turn_create_permission(verbose, clnet_info, &peer_addr, 1) < 0) {
-					exit(-1);
+					LOGE("zbq ---- turn_create_permission error 3");
+					return -1;
 				}
 				if(rare_event()) return 0;
 				if (turn_create_permission(verbose, clnet_info, &peer_addr_rtcp, 1)
 					< 0) {
-					exit(-1);
+					LOGE("zbq ---- turn_create_permission error 4");
+					return -1;
 				}
 				if(rare_event()) return 0;
 			}
@@ -1150,12 +1164,14 @@ int start_connection(uint16_t clnet_remote_port0,
 			if (!no_rtcp) {
 				if (turn_create_permission(verbose, clnet_info_rtcp,
 						&peer_addr_rtcp, 1) < 0) {
-					exit(-1);
+					LOGE("zbq ---- turn_create_permission error 5");
+					return -1;
 				}
 				if(rare_event()) return 0;
 				if (turn_create_permission(verbose, clnet_info_rtcp, &peer_addr, 1)
 						< 0) {
-					exit(-1);
+					LOGE("zbq ---- turn_create_permission error 6");
+					return -1;
 				}
 				if(rare_event()) return 0;
 			}

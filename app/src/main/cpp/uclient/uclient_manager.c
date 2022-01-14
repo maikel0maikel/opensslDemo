@@ -32,7 +32,7 @@ char cert_file[1025]="";
 char pkey_file[1025]="";
 SSL_CTX *root_tls_ctx[32];
 int root_tls_ctx_num = 0;
-int c2c=1;
+int c2c=0;
 int clmessage_length=100;
 int do_not_use_channel=0;
 
@@ -180,8 +180,9 @@ void start_uclient(const char* remote_address,int remote_port,const char* uname,
 
 
     if (!c2c) {
-
+        LOGE("zbq !c2c  make_ioa_addr start --->");
         if (make_ioa_addr((const uint8_t*) peer_address, peer_port, &peer_addr) < 0) {
+            LOGE("zbq !c2c  make_ioa_addr error --->");
             return ;
         }
 
@@ -249,27 +250,27 @@ void start_uclient(const char* remote_address,int remote_port,const char* uname,
 
             if(cert_file[0]) {
                 if (!SSL_CTX_use_certificate_chain_file(root_tls_ctx[sslind], cert_file)) {
-                    TURN_LOG_FUNC(TURN_LOG_LEVEL_ERROR, "\nERROR: no certificate found!\n");
-                    exit(-1);
+                    LOGE( "\nERROR: no certificate found!\n");
+                    return;
                 }
             }
 
             if (!SSL_CTX_use_PrivateKey_file(root_tls_ctx[sslind], pkey_file,
                                              SSL_FILETYPE_PEM)) {
-                TURN_LOG_FUNC(TURN_LOG_LEVEL_ERROR, "\nERROR: no private key found!\n");
-                exit(-1);
+                LOGE( "\nERROR: no private key found!\n");
+                return;
             }
 
             if(cert_file[0]) {
                 if (!SSL_CTX_check_private_key(root_tls_ctx[sslind])) {
-                    TURN_LOG_FUNC(TURN_LOG_LEVEL_ERROR, "\nERROR: invalid private key!\n");
-                    exit(-1);
+                    LOGE( "\nERROR: invalid private key!\n");
+                    return;
                 }
             }
 
             if (ca_cert_file[0]) {
                 if (!SSL_CTX_load_verify_locations(root_tls_ctx[sslind], ca_cert_file, NULL )) {
-                    TURN_LOG_FUNC(TURN_LOG_LEVEL_ERROR,
+                    LOGE(
                                   "ERROR: cannot load CA from file: %s\n",
                                   ca_cert_file);
                 }
@@ -287,6 +288,7 @@ void start_uclient(const char* remote_address,int remote_port,const char* uname,
                 SSL_CTX_set_read_ahead(root_tls_ctx[sslind], 1);
         }
     }
+
     start_mclient(remote_address, port, client_ifname, m_local_addr, messagenumber, mclient);
 
 }

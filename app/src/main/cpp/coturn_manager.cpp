@@ -101,6 +101,12 @@ void coturn_manager::startUClient(const char *remote_addr, int port, const char 
 
 }
 
+void coturn_manager::set_peer(const char *peer_addr, int peer_port) {
+    LOGE("coturn_manager::set_peer %s,%d\n",peer_addr,peer_port);
+    set_peer_address(peer_addr);
+    set_peer_port(peer_port);
+}
+
 coturn_manager::~coturn_manager() {
 
 }
