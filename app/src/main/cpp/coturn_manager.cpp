@@ -15,7 +15,9 @@ JavaVM *coturn_manager::mVm = nullptr;
 coturn_manager::coturn_manager(JavaVM *vm) {
     mVm = vm;
 }
-
+void coturn_manager::setc2c(int _c2c){
+    set_c2c(_c2c);
+}
 
 void coturn_manager::startStun(const char *address, int port, jobject callback) {
     objectsMap.erase(REFLEXIVE_IP);
@@ -25,8 +27,6 @@ void coturn_manager::startStun(const char *address, int port, jobject callback) 
 
 void coturn_manager::init() {
     set_addr_cb([](int type, const char *local_ip, int port) -> void {
-        LOGE("on local_ip %d %s,%d,%d\n", type, local_ip, port, objectsMap.size());
-
         std::map<int, jobject>::iterator it = objectsMap.find(LOCAL_IP);
         if (it != objectsMap.end()) {
             JNIEnv *env;

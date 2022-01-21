@@ -73,7 +73,9 @@ char m_local_addr[256];
 void set_peer_address(const char*peer_addr){
     strcpy(peer_address,peer_addr);
 }
-
+void set_c2c(int _c2c){
+    c2c = _c2c;
+}
 void start_uclient_default(const char* remote_address,int remote_port){
     start_uclient(remote_address,remote_port,0,0);
 }
@@ -290,5 +292,4 @@ void start_uclient(const char* remote_address,int remote_port,const char* uname,
     }
 
     start_mclient(remote_address, port, client_ifname, m_local_addr, messagenumber, mclient);
-
 }

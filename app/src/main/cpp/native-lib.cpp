@@ -28,6 +28,7 @@ void startuclient(JNIEnv *env, jobject thiz, jlong native_ptr, jstring address, 
     const char *remote_addr = env->GetStringUTFChars(address, 0);
     const char *_u_name = env->GetStringUTFChars(u_name, 0);
     const char *_u_pwd = env->GetStringUTFChars(u_pwd, 0);
+    manager->setc2c(1);//client to client
     manager->startUClient(remote_addr, port, _u_name, _u_pwd, observer);
     env->ReleaseStringChars(address, reinterpret_cast<const jchar *>(remote_addr));
     env->ReleaseStringChars(u_name, reinterpret_cast<const jchar *>(_u_name));

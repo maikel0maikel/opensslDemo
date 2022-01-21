@@ -16,6 +16,7 @@ public:
     void startUClient(const char *remote_addr,int port,const char *u_name,const char *u_pwd,jobject callback);
     void init();
     void set_peer(const char *peer_addr,int peer_port);
+    void setc2c(int _c2c);
     ~coturn_manager();
 private:
     static JavaVM * mVm ;

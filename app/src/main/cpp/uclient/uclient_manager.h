@@ -12,6 +12,8 @@ void start_uclient(const char* remote_address,int remote_port,const char* uname,
 
 void set_peer_address(const char*peer_addr);
 
+void set_c2c(int _c2c);
+
 void set_peer_port(int port);
 
 void set_use_null_cipher(int cipher);

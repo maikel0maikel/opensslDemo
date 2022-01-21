@@ -14,7 +14,7 @@ object CoturnManager {
         nativePtr = initNative()
     }
 
-    fun startUClient(
+    fun startC2C(
         remoteAddress: String,
         port: Int,
         uName: String,

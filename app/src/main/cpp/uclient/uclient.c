@@ -1030,12 +1030,15 @@ static int start_client(const char *remote_address, int port,
     uint16_t chnum = 0;
     uint16_t chnum_rtcp = 0;
 
-    start_connection(port, remote_address,
+    if(start_connection(port, remote_address,
                      ifname, local_address,
                      clnet_verbose,
                      &clnet_info_probe,
                      clnet_info, &chnum,
-                     clnet_info_rtcp, &chnum_rtcp);
+                     clnet_info_rtcp, &chnum_rtcp)<0){
+        LOGE("start_connection error");
+        return -1;
+    }
 
     if (clnet_info_probe.ssl) {
         SSL_free(clnet_info_probe.ssl);
@@ -1098,7 +1101,7 @@ static int start_c2c(const char *remote_address, int port,
                      const unsigned char *ifname, const char *local_address,
                      int messagenumber,
                      int i) {
-
+    LOGE("start_c2c-------------------------------------->");
     app_ur_session *ss1 = create_new_ss();
     app_ur_session *ss1_rtcp = NULL;
 
@@ -1428,7 +1431,6 @@ void start_mclient(const char *remote_address, int port,
     }
     elems = (app_ur_session **) malloc(
             sizeof(app_ur_session) * ((mclient * 2) + 1) + sizeof(void *));
-
     //elems = (app_ur_session**)malloc(sizeof(app_ur_session)*(1)+sizeof(void*));
     __turn_getMSTime();
     uint32_t stime = current_time;
@@ -1442,6 +1444,7 @@ void start_mclient(const char *remote_address, int port,
     if (c2c) {
         if (!no_rtcp)
             for (i = 0; i < (mclient >> 2); i++) {
+                LOGE("elems index=%d",i);
                 if (!dos) usleep(SLEEP_INTERVAL);
                 if (start_c2c(remote_address, port, ifname, local_address,
                               messagenumber, i << 2) < 0) {
@@ -1598,6 +1601,12 @@ void start_mclient(const char *remote_address, int port,
             break;
         }
     }
+//    if (elems){
+//        tot_messages = elems[i]->tot_msgnum * total_clients;
+//    }else{
+//        LOGE(" elems is empty -------->");
+//        return;
+//    }
 
     start_full_timer = 1;
 
