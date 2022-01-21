@@ -5,7 +5,7 @@
 #include "coturn_manager.h"
 
 extern "C" {
-#include "uclient_manager.h"
+#include "p2p/uclient_manager.h"
 #include "stun_manager.h"
 }
 
@@ -105,6 +105,11 @@ void coturn_manager::set_peer(const char *peer_addr, int peer_port) {
     LOGE("coturn_manager::set_peer %s,%d\n",peer_addr,peer_port);
     set_peer_address(peer_addr);
     set_peer_port(peer_port);
+}
+
+void coturn_manager::bindClient(int type, const char *bind_addr, int bind_port) {
+    LOGE("native bindClient type=%d,bind_addr=%s,bind_port=%d",type,bind_addr,bind_port);
+
 }
 
 coturn_manager::~coturn_manager() {

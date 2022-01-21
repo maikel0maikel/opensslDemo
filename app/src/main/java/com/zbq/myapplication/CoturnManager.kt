@@ -43,6 +43,10 @@ object CoturnManager {
         startPeerClient(nativePtr,peerAddr,peerPort,remoteAddress,port,uName,uPwd,observer)
     }
 
+    fun bindClient(type:Int,address:String,port: Int){
+
+    }
+
     private external fun initNative(): Long
 
     private external fun startStun(
@@ -71,4 +75,6 @@ object CoturnManager {
         uPwd: String,
         observer: OnIPAddressObserver
     )
+
+    private external fun bindClient(nativePtr: Long,type: Int,address: String,port: Int)
 }

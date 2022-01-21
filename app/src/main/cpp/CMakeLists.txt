@@ -7,7 +7,8 @@ project("opensslDemo")
 include_directories(
         include
         include/ns_turn
-        uclient
+#        uclient
+        p2p
         stunclient
         include/hiredis
         client
@@ -39,8 +40,8 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/event SOURCE_EVENT)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/hiredis SOURCE_HIREDIS)
 #aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/natdiscovery SOURCE_NAT)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/stunclient SOURCE_STUN)
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/uclient SOURCE_UCLIENT)
-
+#aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/uclient SOURCE_UCLIENT)
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/p2p SOURCE_P2P)
 add_library( # Sets the name of the library.
         native-lib
         SHARED
@@ -52,7 +53,8 @@ add_library( # Sets the name of the library.
         ${SOURCE_HIREDIS}
         #        ${SOURCE_NAT}
         ${SOURCE_STUN}
-        ${SOURCE_UCLIENT}
+#        ${SOURCE_UCLIENT}
+        ${SOURCE_P2P}
         )
 
 

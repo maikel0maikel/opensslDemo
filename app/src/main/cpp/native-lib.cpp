@@ -18,7 +18,7 @@ start_stun(JNIEnv *env, jobject obj, jlong native_ptr, jstring addr, jint port, 
 
     manager->startStun(remote_address, port, observer);
 
-    env->ReleaseStringChars(addr, reinterpret_cast<const jchar *>(remote_address));
+    env->ReleaseStringUTFChars(addr, remote_address);
 }
 
 void startuclient(JNIEnv *env, jobject thiz, jlong native_ptr, jstring address, jint port,
@@ -30,9 +30,9 @@ void startuclient(JNIEnv *env, jobject thiz, jlong native_ptr, jstring address, 
     const char *_u_pwd = env->GetStringUTFChars(u_pwd, 0);
     manager->setc2c(1);//client to client
     manager->startUClient(remote_addr, port, _u_name, _u_pwd, observer);
-    env->ReleaseStringChars(address, reinterpret_cast<const jchar *>(remote_addr));
-    env->ReleaseStringChars(u_name, reinterpret_cast<const jchar *>(_u_name));
-    env->ReleaseStringChars(u_pwd, reinterpret_cast<const jchar *>(_u_pwd));
+    env->ReleaseStringUTFChars(address, remote_addr);
+    env->ReleaseStringUTFChars(u_name, _u_name);
+    env->ReleaseStringUTFChars(u_pwd, _u_pwd);
 }
 
 void startPeerClient(JNIEnv *env, jobject thiz, jlong native_ptr,
@@ -47,10 +47,18 @@ void startPeerClient(JNIEnv *env, jobject thiz, jlong native_ptr,
     coturn_manager *manager = reinterpret_cast<coturn_manager *>(native_ptr);
     manager->set_peer(peer_addr, peerPort);
     manager->startUClient(remote_addr, remotePort, _u_name, _u_pwd, observer);
-    env->ReleaseStringChars(peerAddress, reinterpret_cast<const jchar *>(peer_addr));
-    env->ReleaseStringChars(remoteAddr, reinterpret_cast<const jchar *>(remote_addr));
-    env->ReleaseStringChars(uName, reinterpret_cast<const jchar *>(_u_name));
-    env->ReleaseStringChars(uPwd, reinterpret_cast<const jchar *>(_u_pwd));
+    env->ReleaseStringUTFChars(peerAddress, peer_addr);
+    env->ReleaseStringUTFChars(remoteAddr, remote_addr);
+    env->ReleaseStringUTFChars(uName, _u_name);
+    env->ReleaseStringUTFChars(uPwd, _u_pwd);
+}
+
+void bind_client(JNIEnv* env,jobject thiz,jlong native_ptr,jint type,jstring address,jint port){
+    const char * _address = env->GetStringUTFChars(address,0);
+    coturn_manager *manager = reinterpret_cast<coturn_manager *>(native_ptr);
+
+    env->ReleaseStringUTFChars(address,_address);
+
 }
 
 const char *coturnClzName = "com/zbq/myapplication/CoturnManager";
@@ -62,7 +70,8 @@ const JNINativeMethod methods[] = {
         {"startUClient",
                             "(JLjava/lang/String;ILjava/lang/String;Ljava/lang/String;Lcom/zbq/myapplication/OnIPAddressObserver;)V",
                                                                                                                                                          (void *) startuclient},
-        {"startPeerClient", "(JLjava/lang/String;ILjava/lang/String;ILjava/lang/String;Ljava/lang/String;Lcom/zbq/myapplication/OnIPAddressObserver;)V", (void *) startPeerClient}
+        {"startPeerClient", "(JLjava/lang/String;ILjava/lang/String;ILjava/lang/String;Ljava/lang/String;Lcom/zbq/myapplication/OnIPAddressObserver;)V", (void *) startPeerClient},
+        {"bindClient","(JILjava/lang/String;I)V",(void *)bind_client}
 };
 
 JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {

@@ -17,6 +17,7 @@ public:
     void init();
     void set_peer(const char *peer_addr,int peer_port);
     void setc2c(int _c2c);
+    void bindClient(int type,const char * bind_addr,int bind_port);
     ~coturn_manager();
 private:
     static JavaVM * mVm ;
