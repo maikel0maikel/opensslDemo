@@ -180,20 +180,20 @@ void start_uclient(const char* remote_address,int remote_port,const char* uname,
 
 
 
-    if (!c2c) {
-        LOGE("zbq !c2c  make_ioa_addr start --->");
-        if (make_ioa_addr((const uint8_t*) peer_address, peer_port, &peer_addr) < 0) {
-            LOGE("zbq !c2c  make_ioa_addr error --->");
-            return ;
-        }
-
-        if(peer_addr.ss.sa_family == AF_INET6) {
-            default_address_family = STUN_ATTRIBUTE_REQUESTED_ADDRESS_FAMILY_VALUE_IPV6;
-        } else if(peer_addr.ss.sa_family == AF_INET) {
-            default_address_family = STUN_ATTRIBUTE_REQUESTED_ADDRESS_FAMILY_VALUE_IPV4;
-        }
-
-    }
+//    if (!c2c) {
+//        LOGE("zbq !c2c  make_ioa_addr start --->");
+//        if (make_ioa_addr((const uint8_t*) peer_address, peer_port, &peer_addr) < 0) {
+//            LOGE("zbq !c2c  make_ioa_addr error --->");
+//            return ;
+//        }
+//
+//        if(peer_addr.ss.sa_family == AF_INET6) {
+//            default_address_family = STUN_ATTRIBUTE_REQUESTED_ADDRESS_FAMILY_VALUE_IPV6;
+//        } else if(peer_addr.ss.sa_family == AF_INET) {
+//            default_address_family = STUN_ATTRIBUTE_REQUESTED_ADDRESS_FAMILY_VALUE_IPV4;
+//        }
+//
+//    }
 
     /* SSL Init ==>> */
 

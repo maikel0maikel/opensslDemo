@@ -46,6 +46,8 @@ extern int use_secure;
 extern int root_tls_ctx_num;
 extern SSL_CTX *root_tls_ctx[32];
 extern int clnet_verbose;
+extern int do_not_use_channel;
+extern int extra_requests;
 
 #define is_TCP_relay() (relay_transport == STUN_ATTRIBUTE_TRANSPORT_TCP_VALUE)
 

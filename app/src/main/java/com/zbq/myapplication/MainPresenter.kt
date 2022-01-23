@@ -302,6 +302,10 @@ class MainPresenter(private var mView:IMainContract.View):IMainContract.Presente
         }
     }
 
+    override fun bindClient(type:Int,address: String, port: Int) {
+        CoturnManager.bindClient(type,address,port)
+    }
+
     override fun destroy() {
         GlobalScope.launch {
             cancelAllJob()
@@ -327,4 +331,6 @@ class MainPresenter(private var mView:IMainContract.View):IMainContract.Presente
         sendReflexiveJob?.cancel()
         receiveReflexiveJob?.cancel()
     }
+
+
 }

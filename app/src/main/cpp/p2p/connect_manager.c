@@ -547,7 +547,7 @@ int start_c2c_connection(uint16_t clnet_remote_port0,
     /* Real: */
 
     if (clnet_connect(clnet_remote_port, remote_address, ifname, local_address,
-                       clnet_info1) < 0) {
+                      clnet_info1) < 0) {
         LOGE("Real clnet_connect  clnet_info1 error");
         return -1;
     }
@@ -1031,4 +1031,362 @@ int socket_connect(evutil_socket_t clnet_fd, ioa_addr *remote_addr, int *connect
     }
 
     return 0;
+}
+
+static int turn_channel_bind(uint16_t *chn,
+                             app_ur_conn_info *clnet_info, ioa_addr *peer_addr) {
+
+    stun_buffer request_message, response_message;
+
+    beg_bind:
+
+    {
+        int cb_sent = 0;
+
+        if (negative_test) {
+            *chn = stun_set_channel_bind_request(&request_message, peer_addr, (uint16_t) random());
+        } else {
+            *chn = stun_set_channel_bind_request(&request_message, peer_addr, *chn);
+        }
+
+        add_origin(&request_message);
+
+        if (add_integrity(clnet_info, &request_message) < 0) return -1;
+
+        stun_attr_add_fingerprint_str(request_message.buf, (size_t *) &(request_message.len));
+
+        while (!cb_sent) {
+
+            int len = send_buffer(clnet_info, &request_message, 0, 0);
+            if (len > 0) {
+                LOGD("channel bind sent\n");
+                cb_sent = 1;
+            } else {
+                perror("send");
+                LOGE("turn_channel_bind send error");
+                return -1;
+            }
+        }
+    }
+
+    ////////////<<==channel bind send
+
+    if (not_rare_event()) return 0;
+
+    ////////channel bind response==>>
+
+    {
+        int cb_received = 0;
+        while (!cb_received) {
+
+            int len = recv_buffer(clnet_info, &response_message, 1, 0, NULL, &request_message);
+            if (len > 0) {
+                LOGD("cb response received: \n");
+                int err_code = 0;
+                uint8_t err_msg[129];
+                if (stun_is_success_response(&response_message)) {
+
+                    cb_received = 1;
+
+                    if (clnet_info->nonce[0]) {
+                        if (check_integrity(clnet_info, &response_message) < 0)
+                            return -1;
+                    }
+
+                    LOGD("success: 0x%x\n",
+                         (int) (*chn));
+                } else if (stun_is_challenge_response_str(response_message.buf,
+                                                          (size_t) response_message.len,
+                                                          &err_code, err_msg, sizeof(err_msg),
+                                                          clnet_info->realm, clnet_info->nonce,
+                                                          clnet_info->server_name,
+                                                          &(clnet_info->oauth))) {
+                    goto beg_bind;
+                } else if (stun_is_error_response(&response_message, &err_code, err_msg,
+                                                  sizeof(err_msg))) {
+                    cb_received = 1;
+                    LOGE("channel bind: error %d (%s)",
+                         err_code, (char *) err_msg);
+                    return -1;
+                } else {
+                    LOGE("unknown channel bind response\n");
+                    /* Try again ? */
+                }
+            } else {
+                perror("recv");
+                LOGE("recv error");
+                return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int turn_create_permission(app_ur_conn_info *clnet_info,
+                                  ioa_addr *peer_addr, int addrnum) {
+
+    if (no_permissions || (addrnum < 1))
+        return 0;
+
+    char saddr[129] = "\0";
+    addr_to_string(peer_addr, (uint8_t *) saddr);
+
+    stun_buffer request_message, response_message;
+
+    beg_cp:
+
+    {
+        int cp_sent = 0;
+
+        stun_init_request(STUN_METHOD_CREATE_PERMISSION, &request_message);
+        {
+            int addrindex;
+            for (addrindex = 0; addrindex < addrnum; ++addrindex) {
+                stun_attr_add_addr(&request_message, STUN_ATTRIBUTE_XOR_PEER_ADDRESS,
+                                   peer_addr + addrindex);
+            }
+        }
+
+        add_origin(&request_message);
+
+        if (add_integrity(clnet_info, &request_message) < 0) return -1;
+
+        stun_attr_add_fingerprint_str(request_message.buf, (size_t *) &(request_message.len));
+
+        while (!cp_sent) {
+
+            int len = send_buffer(clnet_info, &request_message, 0, 0);
+
+            if (len > 0) {
+                LOGD("create perm sent: %s\n", saddr);
+                cp_sent = 1;
+            } else {
+                perror("send");
+                exit(1);
+            }
+        }
+    }
+
+    ////////////<<==create permission send
+
+    if (not_rare_event()) return 0;
+
+    ////////create permission response==>>
+
+    {
+        int cp_received = 0;
+        while (!cp_received) {
+
+            int len = recv_buffer(clnet_info, &response_message, 1, 0, NULL, &request_message);
+            if (len > 0) {
+                LOGD("cp response received: \n");
+                int err_code = 0;
+                uint8_t err_msg[129];
+                if (stun_is_success_response(&response_message)) {
+
+                    cp_received = 1;
+
+                    if (clnet_info->nonce[0]) {
+                        if (check_integrity(clnet_info, &response_message) < 0)
+                            return -1;
+                    }
+
+                    LOGD("success\n");
+                } else if (stun_is_challenge_response_str(response_message.buf,
+                                                          (size_t) response_message.len,
+                                                          &err_code, err_msg, sizeof(err_msg),
+                                                          clnet_info->realm, clnet_info->nonce,
+                                                          clnet_info->server_name,
+                                                          &(clnet_info->oauth))) {
+                    goto beg_cp;
+                } else if (stun_is_error_response(&response_message, &err_code, err_msg,
+                                                  sizeof(err_msg))) {
+                    cp_received = 1;
+                    LOGD("create permission error %d (%s)\n",
+                         err_code, (char *) err_msg);
+                    return -1;
+                } else {
+                    LOGD("unknown create permission response\n");
+                    /* Try again ? */
+                }
+            } else {
+                perror("recv");
+                exit(-1);
+            }
+        }
+    }
+
+    return 0;
+}
+
+void bind_real(int type, const char *address, int port, app_ur_conn_info *clnet_info) {
+
+    if (!c2c) {
+        LOGE("zbq !c2c  make_ioa_addr start --->");
+        if (make_ioa_addr((const uint8_t *) address, port, &peer_addr) < 0) {
+            LOGE("zbq !c2c  make_ioa_addr error --->");
+            return;
+        }
+
+        if (peer_addr.ss.sa_family == AF_INET6) {
+            default_address_family = STUN_ATTRIBUTE_REQUESTED_ADDRESS_FAMILY_VALUE_IPV6;
+        } else if (peer_addr.ss.sa_family == AF_INET) {
+            default_address_family = STUN_ATTRIBUTE_REQUESTED_ADDRESS_FAMILY_VALUE_IPV4;
+        }
+
+    }
+    uint16_t chnum = 0;
+    uint16_t *chn = &chnum;
+
+    if (!dos) {
+        if (!do_not_use_channel) {
+            /* These multiple "channel bind" requests are here only because
+             * we are playing with the TURN server trying to screw it */
+//            if (turn_channel_bind(verbose, chn, clnet_info, &peer_addr_rtcp)
+//                < 0) {
+//                LOGE("zbq ---- turn_channel_bind error");
+//                return ;
+//            }
+//            if (rare_event()) return ;
+//
+//            if (turn_channel_bind(verbose, chn, clnet_info, &peer_addr_rtcp)
+//                < 0) {
+//                LOGE("zbq ---- turn_channel_bind error 2");
+//                return ;
+//            }
+//            if (rare_event()) return ;
+            *chn = 0;
+            if (turn_channel_bind(chn, clnet_info, &peer_addr) < 0) {
+                LOGE("zbq ---- turn_channel_bind error 3");
+                return;
+            }
+
+            if (rare_event()) return;
+            if (turn_channel_bind(chn, clnet_info, &peer_addr) < 0) {
+                LOGE("zbq ---- turn_channel_bind error 4");
+                return;
+            }
+            if (rare_event()) return;
+
+            if (extra_requests) {
+                const char *sarbaddr = "164.156.178.190";
+                if (random() % 2 == 0)
+                    sarbaddr = "2001::172";
+                ioa_addr arbaddr;
+                make_ioa_addr((const uint8_t *) sarbaddr, 333, &arbaddr);
+                int i;
+                int maxi = (unsigned short) random() % EXTRA_CREATE_PERMS;
+                for (i = 0; i < maxi; i++) {
+                    uint16_t chni = 0;
+                    int port = (unsigned short) random();
+                    if (port < 1024) port += 1024;
+                    addr_set_port(&arbaddr, port);
+                    uint8_t *u = (uint8_t *) &(arbaddr.s4.sin_addr);
+                    u[(unsigned short) random() % 4] = u[(unsigned short) random() % 4] + 1;
+                    //char sss[128];
+                    //addr_to_string(&arbaddr,(uint8_t*)sss);
+                    //printf("%s: 111.111: %s\n",__FUNCTION__,sss);
+                    turn_channel_bind(&chni, clnet_info, &arbaddr);
+                }
+            }
+
+//            if (!no_rtcp) {
+//                if (turn_channel_bind( chn_rtcp, clnet_info_rtcp,
+//                                      &peer_addr_rtcp) < 0) {
+//                    LOGE("zbq ---- turn_channel_bind error 5");
+//                    return;
+//                }
+//            }
+            if (rare_event()) return;
+
+            if (extra_requests) {
+                const char *sarbaddr = "64.56.78.90";
+                if (random() % 2 == 0)
+                    sarbaddr = "2001::172";
+                ioa_addr arbaddr[EXTRA_CREATE_PERMS];
+                make_ioa_addr((const uint8_t *) sarbaddr, 333, &arbaddr[0]);
+                int i;
+                int maxi = (unsigned short) random() % EXTRA_CREATE_PERMS;
+                for (i = 0; i < maxi; i++) {
+                    if (i > 0)
+                        addr_cpy(&arbaddr[i], &arbaddr[0]);
+                    addr_set_port(&arbaddr[i], (unsigned short) random());
+                    uint8_t *u = (uint8_t *) &(arbaddr[i].s4.sin_addr);
+                    u[(unsigned short) random() % 4] = u[(unsigned short) random() % 4] + 1;
+                    //char sss[128];
+                    //addr_to_string(&arbaddr[i],(uint8_t*)sss);
+                    //printf("%s: 111.111: %s\n",__FUNCTION__,sss);
+                }
+                turn_create_permission(clnet_info, arbaddr, maxi);
+            }
+        } else {
+
+            int before = (random() % 2 == 0);
+
+            if (before) {
+                if (turn_create_permission( clnet_info, &peer_addr, 1) < 0) {
+                    LOGE("zbq ---- turn_create_permission error ");
+                    return;
+                }
+                if (rare_event()) return;
+//                if (turn_create_permission( clnet_info, &peer_addr_rtcp, 1)
+//                    < 0) {
+//                    LOGE("zbq ---- turn_create_permission error 2");
+//                    return;
+//                }
+//                if (rare_event()) return;
+            }
+
+            if (extra_requests) {
+                const char *sarbaddr = "64.56.78.90";
+                if (random() % 2 == 0)
+                    sarbaddr = "2001::172";
+                ioa_addr arbaddr[EXTRA_CREATE_PERMS];
+                make_ioa_addr((const uint8_t *) sarbaddr, 333, &arbaddr[0]);
+                int i;
+                int maxi = (unsigned short) random() % EXTRA_CREATE_PERMS;
+                for (i = 0; i < maxi; i++) {
+                    if (i > 0)
+                        addr_cpy(&arbaddr[i], &arbaddr[0]);
+                    addr_set_port(&arbaddr[i], (unsigned short) random());
+                    uint8_t *u = (uint8_t *) &(arbaddr[i].s4.sin_addr);
+                    u[(unsigned short) random() % 4] = u[(unsigned short) random() % 4] + 1;
+                    //char sss[128];
+                    //addr_to_string(&arbaddr,(uint8_t*)sss);
+                    //printf("%s: 111.111: %s\n",__FUNCTION__,sss);
+                }
+                turn_create_permission( clnet_info, arbaddr, maxi);
+            }
+
+            if (!before) {
+                if (turn_create_permission( clnet_info, &peer_addr, 1) < 0) {
+                    LOGE("zbq ---- turn_create_permission error 3");
+                    return;
+                }
+                if (rare_event()) return ;
+//                if (turn_create_permission( clnet_info, &peer_addr_rtcp, 1)
+//                    < 0) {
+//                    LOGE("zbq ---- turn_create_permission error 4");
+//                    return;
+//                }
+//                if (rare_event()) return;
+            }
+
+//            if (!no_rtcp) {
+//                if (turn_create_permission( clnet_info_rtcp,
+//                                           &peer_addr_rtcp, 1) < 0) {
+//                    LOGE("zbq ---- turn_create_permission error 5");
+//                    return ;
+//                }
+//                if (rare_event()) return;
+//                if (turn_create_permission( clnet_info_rtcp, &peer_addr, 1)
+//                    < 0) {
+//                    LOGE("zbq ---- turn_create_permission error 6");
+//                    return;
+//                }
+//                if (rare_event()) return;
+//            }
+        }
+    }
 }

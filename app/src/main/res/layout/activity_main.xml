@@ -89,5 +89,11 @@
                     android:hint="收到的消息将展示在这里"/>
             </LinearLayout>
 
+            <Button
+                android:id="@+id/test_bind_bt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="test bind"/>
+
         </LinearLayout>
 </ScrollView>

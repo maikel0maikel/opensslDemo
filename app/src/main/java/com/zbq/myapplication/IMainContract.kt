@@ -32,6 +32,8 @@ interface IMainContract {
         fun startReflexiveUDP()
 
         fun destroy()
+
+        fun bindClient(type:Int,address:String,port:Int)
     }
 
 }

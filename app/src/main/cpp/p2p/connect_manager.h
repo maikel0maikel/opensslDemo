@@ -34,7 +34,7 @@ int read_mobility_ticket(app_ur_conn_info *clnet_info, stun_buffer *message);
 int socket_connect(evutil_socket_t clnet_fd, ioa_addr *remote_addr, int *connect_err);
 void set_local_addr_cb(local_address_cb cb);
 void notify_ip(int type ,const ioa_addr *addr,local_address_cb cb);
-
+void bind_real(int type,const char * address,int port,app_ur_conn_info *clnet_info);
 #ifdef __cplusplus
 }
 #endif

@@ -109,7 +109,7 @@ void coturn_manager::set_peer(const char *peer_addr, int peer_port) {
 
 void coturn_manager::bindClient(int type, const char *bind_addr, int bind_port) {
     LOGE("native bindClient type=%d,bind_addr=%s,bind_port=%d",type,bind_addr,bind_port);
-
+    start_bind_client(type,bind_addr,bind_port);
 }
 
 coturn_manager::~coturn_manager() {

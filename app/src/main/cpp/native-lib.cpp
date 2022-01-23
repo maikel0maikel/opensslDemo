@@ -56,7 +56,7 @@ void startPeerClient(JNIEnv *env, jobject thiz, jlong native_ptr,
 void bind_client(JNIEnv* env,jobject thiz,jlong native_ptr,jint type,jstring address,jint port){
     const char * _address = env->GetStringUTFChars(address,0);
     coturn_manager *manager = reinterpret_cast<coturn_manager *>(native_ptr);
-
+    manager->bindClient(type,_address,port);
     env->ReleaseStringUTFChars(address,_address);
 
 }

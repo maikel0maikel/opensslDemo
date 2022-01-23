@@ -54,8 +54,15 @@ class MainActivity : AppCompatActivity(),IMainContract.View {
         findViewById<Button>(R.id.start_reflexive_udp).setOnClickListener {
             mPresenter.startReflexiveUDP()
         }
+
+        findViewById<Button>(R.id.test_bind_bt).setOnClickListener{
+            mPresenter.bindClient(1,"192.168.31.212",80)
+        }
     }
 
+//    private var showIp:((viewId:Int,type:Int,ip:String,port:Int)->Unit)? = { i: Int, i1: Int, s: String, i2: Int ->
+//
+//    }
 
 
     override fun onDestroy() {

@@ -44,7 +44,7 @@ object CoturnManager {
     }
 
     fun bindClient(type:Int,address:String,port: Int){
-
+         bindClient(nativePtr,type,address,port)
     }
 
     private external fun initNative(): Long
